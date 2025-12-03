@@ -13,6 +13,11 @@ This repository contains the configuration to deploy Mailu, a full-featured mail
     The `mailu.env` file is pre-configured for local testing with `localhost`.
     
     > **Note**: For production, change `DOMAIN`, `HOSTNAMES`, and `TLS_FLAVOR`.
+    > **Important**: Ensure the following variables are set in `mailu.env`:
+    > - `WEB_WEBMAIL=/webmail` (or `/`)
+    > - `ADMIN=true`
+    > - `WEB_ADMIN=/admin`
+    > - `WEBROOT_REDIRECT=/webmail` (optional, to redirect root to webmail)
 
 2.  **Generate Secret Key**:
     You **must** generate a secure secret key for the `SECRET_KEY` variable in `mailu.env`.
@@ -22,7 +27,14 @@ This repository contains the configuration to deploy Mailu, a full-featured mail
     ```
     Copy the output and replace `change_me_to_a_long_random_string` in `mailu.env`.
 
-3.  **Start the Service**:
+3.  **Generate Self-Signed Certificates** (Localhost only):
+    For local testing with `TLS_FLAVOR=cert`, you must generate self-signed certificates.
+    Run:
+    ```bash
+    openssl req -x509 -newkey rsa:4096 -keyout mailu/certs/key.pem -out mailu/certs/cert.pem -days 365 -nodes -subj "/CN=localhost"
+    ```
+
+4.  **Start the Service**:
     Run the following command to start all services:
     ```bash
     docker compose up -d
