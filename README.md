@@ -44,6 +44,41 @@ This repository contains the configuration to deploy Mailu, a full-featured mail
 - `mailu.env`: Environment variables for configuration.
 - `mailu/`: Directory where persistent data (mail, certs, db) will be stored.
 
+## Architecture & Services
+
+Mailu is composed of several Docker containers, each performing a specific role:
+
+-   **front**: The main Nginx reverse proxy and authentication server. It handles all incoming connections and routes them to the appropriate backend services.
+-   **admin**: The administration interface for managing domains, users, and aliases. It also handles DKIM key generation.
+-   **imap**: Dovecot IMAP server for mail storage and retrieval.
+-   **smtp**: Postfix SMTP server for mail delivery and routing.
+-   **antispam**: Rspamd for spam filtering and DKIM signing.
+-   **antivirus**: ClamAV for scanning emails for viruses.
+-   **webmail**: A web-based email client (RainLoop or SnappyMail) for users to access their mail.
+-   **redis**: Key-value store used by various services for caching and session management.
+-   **resolver**: Unbound DNS resolver to ensure proper DNS lookups for anti-spam checks.
+
+## Network & Ports
+
+The following ports are exposed by the `front` service to handle various email and web protocols.
+
+<details>
+<summary><strong>Click to expand Port Information</strong></summary>
+
+| Port | Protocol | Service | Description |
+| :--- | :--- | :--- | :--- |
+| **80** | TCP | HTTP | Webmail and Admin interface (redirects to HTTPS usually) |
+| **443** | TCP | HTTPS | Secure Webmail and Admin interface access |
+| **25** | TCP | SMTP | Standard SMTP port for incoming mail from other servers |
+| **465** | TCP | SMTPS | Secure SMTP for mail submission (SSL/TLS) |
+| **587** | TCP | SMTP | Secure SMTP for mail submission (STARTTLS) |
+| **110** | TCP | POP3 | Standard POP3 for mail retrieval |
+| **995** | TCP | POP3S | Secure POP3 for mail retrieval (SSL/TLS) |
+| **143** | TCP | IMAP | Standard IMAP for mail retrieval |
+| **993** | TCP | IMAPS | Secure IMAP for mail retrieval (SSL/TLS) |
+
+</details>
+
 ## Production Setup
 
 For production deployment:
