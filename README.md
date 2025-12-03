@@ -62,9 +62,6 @@ Mailu is composed of several Docker containers, each performing a specific role:
 
 The following ports are exposed by the `front` service to handle various email and web protocols.
 
-<details>
-<summary><strong>Click to expand Port Information</strong></summary>
-
 | Port | Protocol | Service | Description |
 | :--- | :--- | :--- | :--- |
 | **80** | TCP | HTTP | Webmail and Admin interface (redirects to HTTPS usually) |
@@ -76,8 +73,6 @@ The following ports are exposed by the `front` service to handle various email a
 | **995** | TCP | POP3S | Secure POP3 for mail retrieval (SSL/TLS) |
 | **143** | TCP | IMAP | Standard IMAP for mail retrieval |
 | **993** | TCP | IMAPS | Secure IMAP for mail retrieval (SSL/TLS) |
-
-</details>
 
 ## Production Setup
 
