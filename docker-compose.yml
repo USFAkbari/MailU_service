@@ -1,0 +1,112 @@
+version: '2.2'
+
+services:
+
+  # External dependencies
+  redis:
+    image: redis:alpine
+    restart: always
+    volumes:
+      - ./mailu/redis:/data
+
+  # Core services
+  front:
+    image: ghcr.io/mailu/nginx:2024.06
+    restart: always
+    env_file: mailu.env
+    logging:
+      driver: json-file
+    ports:
+      - "80:80"
+      - "443:443"
+      - "25:25"
+      - "465:465"
+      - "587:587"
+      - "110:110"
+      - "995:995"
+      - "143:143"
+      - "993:993"
+    volumes:
+      - ./mailu/certs:/certs
+      - ./mailu/overrides/nginx:/overrides:ro
+    depends_on:
+      - resolver
+      - admin
+      - imap
+      - smtp
+      - webmail
+      - antivirus
+
+  resolver:
+    image: ghcr.io/mailu/unbound:2024.06
+    env_file: mailu.env
+    restart: always
+    networks:
+      default:
+        ipv4_address: 192.168.203.254
+
+  admin:
+    image: ghcr.io/mailu/admin:2024.06
+    restart: always
+    env_file: mailu.env
+    volumes:
+      - ./mailu/data:/data
+      - ./mailu/dkim:/dkim
+    depends_on:
+      - redis
+
+  imap:
+    image: ghcr.io/mailu/dovecot:2024.06
+    restart: always
+    env_file: mailu.env
+    volumes:
+      - ./mailu/mail:/mail
+      - ./mailu/overrides/dovecot:/overrides:ro
+    depends_on:
+      - redis
+
+  smtp:
+    image: ghcr.io/mailu/postfix:2024.06
+    restart: always
+    env_file: mailu.env
+    volumes:
+      - ./mailu/overrides/postfix:/overrides:ro
+    depends_on:
+      - redis
+
+  antispam:
+    image: ghcr.io/mailu/rspamd:2024.06
+    restart: always
+    env_file: mailu.env
+    volumes:
+      - ./mailu/filter:/var/lib/rspamd
+      - ./mailu/dkim:/dkim:ro
+      - ./mailu/overrides/rspamd:/etc/rspamd/override.d:ro
+    depends_on:
+      - front
+      - redis
+
+  antivirus:
+    image: clamav/clamav:latest
+    restart: always
+    env_file: mailu.env
+    volumes:
+      - ./mailu/filter:/var/lib/clamav
+
+  webmail:
+    image: ghcr.io/mailu/webmail:2024.06
+    restart: always
+    env_file: mailu.env
+    volumes:
+      - ./mailu/webmail:/data
+    depends_on:
+      - imap
+      - smtp
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.203.0/24
